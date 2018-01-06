@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.imb.jeremy.sensortest.MainActivity">
+    <fragment
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context="com.imb.jeremy.sensortest.MapsActivity" />
+    <FrameLayout
+        android:layout_alignParentBottom="true"
+        android:padding="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:background="@android:color/white"
+            android:layout_width="match_parent"
+            android:orientation="horizontal"
+            android:layout_height="wrap_content">
+            <EditText
+                android:inputType="numberDecimal"
+                android:digits="0123456789-."
+                android:hint="lat"
+                android:layout_weight="1"
+                android:id="@+id/latitutdefield"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent" />
+            <EditText
+                android:inputType="numberDecimal"
+                android:digits="0123456789-."
+                android:hint="long"
+                android:layout_weight="1"
+                android:id="@+id/longitudefield"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent" />
+            <Button
+                android:id="@+id/setdestbtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.1"
+                android:text="set"/>
+        </LinearLayout>
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/frameTop"
+        android:layout_width="match_parent"
+        android:layout_alignParentTop="true"
+        android:paddingTop="5dp"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:orientation="horizontal"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:layout_weight="1"
+                android:id="@+id/callcustomerbtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="call customer"/>
+
+            <TextView
+                android:layout_weight="1"
+                android:id="@+id/sensorTV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="some sensor information"/>
+
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+    <FrameLayout
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="50dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        >
+        <Button
+            android:id="@+id/simbtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="sim"/>
+    </FrameLayout>
+</RelativeLayout>
