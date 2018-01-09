@@ -1,12 +1,18 @@
 package com.imb.jeremy.sensortest;
 
 import android.Manifest;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
@@ -18,6 +24,9 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.ActivityRecognition;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -40,7 +49,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
 
     //location requests
     private static final long REQ_INTERVAL = 4000;
@@ -68,16 +77,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     FrameLayout frameTop;
     @BindView(R.id.simbtn)
     Button simbtn;
+    @BindView(R.id.still)
+    TextView still;
+    @BindView(R.id.run)
+    TextView run;
+    @BindView(R.id.walk)
+    TextView walk;
+    @BindView(R.id.tilt)
+    TextView tilt;
+    @BindView(R.id.foot)
+    TextView foot;
+    @BindView(R.id.vehicle)
+    TextView vehicle;
+    @BindView(R.id.bike)
+    TextView bike;
+    @BindView(R.id.unknown)
+    TextView unknown;
 
 
     private GoogleMap mMap;
+    public GoogleApiClient mApiClient;
     private FusedLocationProviderClient mFusedLocationClient;
     private LocationCallback mLocationCallback;
     private ArrayList<LatLng> cla = new ArrayList<>();
     private ArrayList<LatLng> desta = new ArrayList<>();
     private ArrayList<LatLng> prevCL = new ArrayList<>();
-    private int i =1;
-
+    private int i = 1;
+    private DataReceiver dataUpdateReceiver;
 
 
     @Override
@@ -92,6 +118,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         frameTop.setVisibility(View.GONE);
+
+        mApiClient = new GoogleApiClient.Builder(this)
+                .addApi(ActivityRecognition.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
+        mApiClient.connect();
+
 
         simbtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -132,6 +166,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         mMap.addMarker(new MarkerOptions().position(updatecl).title("current location"));
                         mMap.addCircle(new CircleOptions().center(updatecl).radius(RADIUS_CL_VAL).strokeColor(Color.RED));
 
+                        printstats();
+
                         if (!desta.isEmpty()) {
                             if (SphericalUtil.computeDistanceBetween(updatecl, desta.get(0)) <= RADIUS_VAL) {
                                 Log.d(TAG, "onLocationResult: WITHIN RADIUS");
@@ -151,6 +187,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             };
         }
+
+    }
+
+    private void printstats() {
+        Log.d(TAG, "printstats: " + ActivityRecognisedService.still);
+        Log.d(TAG, "printstats: " + ActivityRecognisedService.run);
+        Log.d(TAG, "printstats: " + ActivityRecognisedService.walk);
+        Log.d(TAG, "printstats: " + ActivityRecognisedService.vehicle);
+        Log.d(TAG, "printstats: " + ActivityRecognisedService.tilt);
+        Log.d(TAG, "printstats: " + ActivityRecognisedService.unknown);
+        Log.d(TAG, "printstats: " + ActivityRecognisedService.on_foot);
+        Log.d(TAG, "printstats: " + ActivityRecognisedService.bike);
+
+        still.setText("Still: " + String.valueOf(ActivityRecognisedService.still));
+        run.setText("Run: " + String.valueOf(ActivityRecognisedService.run));
+        walk.setText("Walk: " + String.valueOf(ActivityRecognisedService.walk));
+        vehicle.setText("Vehicle: " + String.valueOf(ActivityRecognisedService.vehicle));
+        tilt.setText("Tilt: " + String.valueOf(ActivityRecognisedService.tilt));
+        unknown.setText("Unknown: " + String.valueOf(ActivityRecognisedService.unknown));
+        foot.setText("Foot: " + String.valueOf(ActivityRecognisedService.on_foot));
+        bike.setText("Bike: " + String.valueOf(ActivityRecognisedService.bike));
+
 
     }
 
@@ -257,11 +315,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        if (i>=array.size()) {
-                            Simulation.fromv =0;
+                        if (i >= array.size()) {
+                            Simulation.fromv = 0;
                             Simulation.tov = 0;
                             Toast.makeText(MapsActivity.this, "end", Toast.LENGTH_SHORT).show();
-                            Log.d(TAG, "END: fromv" + Simulation.fromv );
+                            Log.d(TAG, "END: fromv" + Simulation.fromv);
                         } else {
                             mMap.addMarker(new MarkerOptions().position(array.get(i)).alpha(0.25f));
                             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(array.get(i), 15));
@@ -278,13 +336,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             }
 
                             //progress
-                            if (array.size()>DETERMINE_AL_VAL) {
+                            if (array.size() > DETERMINE_AL_VAL) {
 
-                                for (int x = 0; x <array.size()-1;x++) {
+                                for (int x = 0; x < array.size() - 1; x++) {
                                     Simulation.fromv = x;
                                     Log.d(TAG, "FROM: " + Simulation.fromv);
                                     Log.d(TAG, "FROM: " + array.get(Simulation.fromv));
-                                    Simulation.tov = Simulation.fromv+1;
+                                    Simulation.tov = Simulation.fromv + 1;
                                     Log.d(TAG, "TO: " + Simulation.tov);
                                     Log.d(TAG, "TO: " + array.get(Simulation.tov));
                                     LatLng from = array.get(Simulation.fromv);
@@ -316,7 +374,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-
     @Override
     protected void onResume() {
         super.onResume();
@@ -326,6 +383,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             startLocationUpdates();
         }
     }
+
 
     private void startLocationUpdates() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -403,6 +461,59 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             String y = longitudefield.getText().toString();
             setDestinationMarker(mMap, Double.parseDouble(s), Double.parseDouble(y));
         }
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        Log.d(TAG, "onConnected: CONNECTED BR");
+        Intent intent = new Intent(this, ActivityRecognisedService.class);
+        PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        ActivityRecognition.getClient(this).requestActivityUpdates(3000, pendingIntent);
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    protected void onResumeFragments() {
+        super.onResumeFragments();
+        if (dataUpdateReceiver == null) dataUpdateReceiver = new DataReceiver();
+        IntentFilter intentFilter = new IntentFilter(ActivityRecognisedService.BROADCASTPERM);
+        registerReceiver(dataUpdateReceiver, intentFilter);
+        Log.d(TAG, "onResumeFragments: REGISTERED BR");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (dataUpdateReceiver != null) unregisterReceiver(dataUpdateReceiver);
+        Log.d(TAG, "onPause: UNREGISTERED BR");
+    }
+}
+
+class DataReceiver extends BroadcastReceiver {
+
+    public int s;
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        if (intent.getAction().equals(ActivityRecognisedService.BROADCASTPERM)) {
+            s = intent.getIntExtra("Activity", 0);
+        }
+    }
+
+    public DataReceiver() {
+    }
+
+    public int getS() {
+        return s;
     }
 
 }

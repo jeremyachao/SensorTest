@@ -89,4 +89,62 @@
             android:layout_height="wrap_content"
             android:text="sim"/>
     </FrameLayout>
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:padding="3dp"
+        android:layout_marginBottom="60dp"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:padding="5dp"
+            android:background="@android:color/white"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/still"
+            android:text="Still:"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+            <TextView
+                android:id="@+id/run"
+                android:text="Run:"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+            <TextView
+                android:id="@+id/walk"
+                android:text="Walk:"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+            <TextView
+                android:id="@+id/tilt"
+                android:text="Tilt:"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+            <TextView
+                android:id="@+id/foot"
+                android:text="On foot:"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+            <TextView
+                android:id="@+id/vehicle"
+                android:text="In vehicle:"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+            <TextView
+                android:id="@+id/bike"
+                android:text="On bike:"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+            <TextView
+                android:id="@+id/unknown"
+                android:text="Unknown:"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+    </FrameLayout>
 </RelativeLayout>
